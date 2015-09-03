@@ -294,134 +294,127 @@ void printNumber16(uint16_t n, uint8_t print_leading_zeros){
 }
 
 
-//This function converts binary to hexidecimal and prints them.
+//This function converts 16 bit binary to hexidecimal and prints them.
 //Arguments are:  binary number, The number of leading zeros before the hex number.
 //ex: if you say leading zeros is 5, then an output will be: 0x004aa.
 //If endieness is set to 1, print numbers as little endianess, or where the 
 //	least significant byte is in the smallest address.
 
-//God this function is such a mess.
+
+
+
+//This function converts 16 bit binary to hexidecimal and prints them.
+//Arguments are:  binary number, The number of leading zeros before the hex number.
+//ex: if you say leading zeros is 2, then an output will be: 0x004aa.
+//If endieness is set to 1, print numbers as little endianess, or where the 
+//	least significant byte is in the smallest address.
+
 void printHex(uint16_t number, uint8_t *leading_zeros, uint8_t *endianess){
 	//48 in ascii is 0
 	char hex_index[] = {'0', '1', '2', '3', '4', '5', '6', '7', 
 						'8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-	uint8_t purple[4];
+	uint8_t purple[4]; //The max size of a 16 bit number is 65536.
 	uint8_t i;	
-	char output[4]; //The max size of a 16 bit number is 65536. 
-	uint8_t counter = 0;
 	
 	purple[0] = number & 0xF;
 	purple[1] = (number>>4) & 0xF;
 	purple[2] = (number>>8) & 0xF;
 	purple[3] = (number>>12) & 0xF;	
 	
-	for (i=1; i<5; i++){
-		output[4-i] = hex_index[purple[i-1]];	
-
-	}
-
-	for (i=0; i<4; i++){
-		if (output[i] == '0'){
-			
-			counter++;
+	//If the function is given 0, print 0.
+	if(purple == 0){
+		if(*leading_zeros >0){
+			for(i=0; i<(*leading_zeros); i++){
+				transmitByte('0');
+			}
 		}
 		else{
-			break;
-		}
-	}
-	//Prints the required number of 0's
-	for(i=0; i<(((*leading_zeros) - (4- counter))); i++){
-		transmitByte('0');
-	}
-	if (number == 0x10000){
-		transmitByte('1');
-		for (uint8_t i =0; i<4; i++){
 			transmitByte('0');
 		}
-		return;
 	}
 	
-	if ( (number == 0) && (*leading_zeros == 0) ){
-		transmitByte('0');
-	}
+	//Assign a hex number equal to the number in purple 
+	for(i=1; i<5; i++){
+		purple[4-i] = hex_index[purple[i-4]];
+	}	
 	
-	if (*endianess == 1){
+	if (*endianess == 1){		
 		for(i=4; i>0; i--){
-			transmitByte(output[i-1]);
+			if(purple[i-1] != '0'){
+				transmitByte(purple[i-1]);
+			}
+		}
+		//The leading zeros are now trailing zeros
+		for(i=0; i<(*leading_zeros); i++){
+			transmitByte('0');
 		}
 	}
 	else{
+		for(i=0; i<(*leading_zeros); i++){
+			transmitByte('0');
+		}
 		for(i=0; i<4; i++){		
-			if (counter > 0){
-				counter--;
-			}
-			else{
-				transmitByte(output[i]);
+			if(purple[i-1] != '0'){
+				transmitByte(purple[i-1]);
 			}
 		}
 	}
-					
+		
 }
 
-//A similar god awful function for printing 32 bit numbers.
-//
+
 void printHex32(uint32_t number, uint8_t *leading_zeros, uint8_t *endianess){
-	char hex_index[] = {'0', '1', '2', '3', '4', '5', '6', '7',
+	
+	char hex_index[] = {'0', '1', '2', '3', '4', '5', '6', '7', 
 						'8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-	uint8_t purple[8];
-	char output[8];
-	uint8_t counter = 0;
-	uint8_t i;
-		
-	if (number == 0){
-		transmitByte('0');
-		goto END_OF_PRINTHEX32; //Will refactor this function later.
-	}	
+	uint8_t purple[8]; 
+	uint8_t i;	
+	
 	purple[0] = number & 0xF;
 	purple[1] = (number>>4) & 0xF;
 	purple[2] = (number>>8) & 0xF;
-	purple[3] = (number>>12) & 0xF;
-	
+	purple[3] = (number>>12) & 0xF;	
 	purple[4] = (number>>16) & 0xF;
 	purple[5] = (number>>20) & 0xF;
 	purple[6] = (number>>24) & 0xF;
 	purple[7] = (number>>28) & 0xF;
 	
-	
-	for (i=1; i<9; i++){
-		output[8-i] = hex_index[purple[i-1]];
-	}
-
-	for (i=0; i<8; i++){
-		if (output[i] == '0'){			
-			counter++;
+	//If the function is given 0, print 0.
+	if(purple == 0){
+		if(*leading_zeros >0){
+			for(i=0; i<(*leading_zeros); i++){
+				transmitByte('0');
+			}
 		}
 		else{
-			break;
+			transmitByte('0');
 		}
 	}
-	//Prints the required number of 0's
-	for(i=0; i<(((*leading_zeros) - (8 - counter))); i++){
-		transmitByte('0');
-	}
-
-	if (*endianess == 1){
-		for(i=4; i>0; i--){
-			transmitByte(output[i-1]);
+	
+	//Assign a hex number equal to the number in purple 
+	for(i=1; i<9; i++){
+		purple[9-i] = hex_index[purple[i-9]];
+	}	
+	
+	if (*endianess == 1){		
+		for(i=9; i>0; i--){
+			if(purple[i-1] != '0'){
+				transmitByte(purple[i-1]);
+			}
+		}
+		//The leading zeros are now trailing zeros
+		for(i=0; i<(*leading_zeros); i++){
+			transmitByte('0');
 		}
 	}
 	else{
-		for(i=0; i<8; i++){
-			if (counter > 0){
-				counter--;
-			}
-			else{
-				transmitByte(output[i]);
-			}
+		for(i=0; i<(*leading_zeros); i++){
+			transmitByte('0');
 		}
-	}
-	END_OF_PRINTHEX32:;
-	
+		for(i=0; i<9; i++){		
+			transmitByte(purple[i]);
+		}
+	}	
 }
 
 ////////////////////////////////////////////////////////////////////////////////
